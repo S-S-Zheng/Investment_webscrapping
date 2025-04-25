@@ -128,3 +128,5 @@ dmypy.json
 graphs/
 *.xlsx
 *.odt
+html/
+old/
