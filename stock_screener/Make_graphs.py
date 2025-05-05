@@ -11,7 +11,7 @@ class Plotter:
         - Maîtrise des coûts (Debt/Equity, Current ratio, EV/EBITDA)
         """
         self.df = df #Stockage de la dataframe
-        self.company = company_name
+        self.company = company_name.split('/')[0]
         #Crée la figure principale avec Plotly, pouvant contenir plusieurs sous-graphes.
         self.fig = make_subplots(
             rows=3, cols=1,
@@ -94,7 +94,7 @@ class Plotter:
         #os.makedirs("graphs", exist_ok=True)
         #os.makedirs("html", exist_ok=True)
 
-        self.fig.write_html(f"html/{filename}")
+        self.fig.write_html(f"html/{self.company}.html")
         self.fig.write_image(f"graphs/{self.company}.png",format="png")
 
     def show(self):

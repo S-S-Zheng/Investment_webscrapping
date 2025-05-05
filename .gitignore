@@ -130,3 +130,4 @@ graphs/
 *.odt
 html/
 old/
+tests/

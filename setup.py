@@ -10,8 +10,12 @@ setup(
         "beautifulsoup4>=4.11",
         "pandas>=1.5",
         "openpyxl>=3.1",
-        "plotly>=5.13"
-        "python-dateutil>=2.8"
+        "plotly>=5.13",
+        "python-dateutil>=2.8",
+        "aiohttp>=3.8",
+        "pytest>=8.0",
+        "pytest-asyncio>=0.20",
+        "asyncio>=3.4"
     ],
     entry_points={
         "console_scripts": [

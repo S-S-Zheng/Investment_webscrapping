@@ -44,20 +44,9 @@ another one [²]
 
 ##### Final structure of the project:
 
-stock_screener/
-├── __init__.py          # <— vide
-├── fetcher.py
-├── transformer.py
-├── exporter.py
-├── plotter.py
-└── main.py
+![Project structure : Final structure of the project](pic1.png)
+<img alt="Project structure : Final structure of the project" src="img/pic1.png" />
 
-tests/
-├── __init__.py          # <— vide
-├── test_fetcher.py
-├── test_transformer.py
-├── test_exporter.py
-└── test_plotter.py
 
 README.md
 requirements.txt
@@ -88,7 +77,7 @@ Methods, options, I/O...
 
 ##### TODO - Modifier les valeurs de millier et les titres cf ci-suit:
 
-'''python
+python
     #Muliplication des lignes par 1000000
     #Methode alternative:   map(lambda x: x * 1E6, data['Capitalisation'])
     dico_valeurs['Capitalisation'] = [(1E6)*x for x in dico_valeurs['Capitalisation']]
@@ -138,7 +127,7 @@ Please make sure to update tests as appropriate.
 A list of frequently asked questions
 1. **This is a question in bold**
 Answer of the first question with _italic words_.
-2. __Second question in bold__ 
+2. __Second question in bold__
 To answer this question we use an unordered list:
 * First point
 * Second Point

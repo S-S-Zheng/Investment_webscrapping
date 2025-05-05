@@ -1,10 +1,17 @@
 # stock_screener/fetcher.py
-'''Responsabilité : isolation du scraping de ZoneBourse (URLs, parsing HTML,
-récupération de TAG/ISIN/prix, construction du DataFrame des ratios)'''
+'''
+Responsabilité : isolation du scraping de ZoneBourse (URLs, parsing HTML,
+récupération de TAG/ISIN/prix, construction du DataFrame des ratios).
+On utilise une session partagée pour toutes les requêtes via aiohttp.ClientSession.
+Chaque fonction est une co-routine suivant async.
+'''
 
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+import aiohttp
+import re
+
 
 HEADERS = {
     "User-Agent": (
@@ -15,14 +22,16 @@ HEADERS = {
 }
 BASE_URL = "https://www.zonebourse.com/cours/action/"
 
-def fetch_meta(company_id: str) -> dict:
+async def fetch_meta(session: aiohttp.ClientSession, company_id: str) -> dict:
     """
-    Récupère TAG, ISIN et prix via la page principale.
+    Récupère NOM, TAG, ISIN et prix via la page principale.
     """
     url = f"{BASE_URL}{company_id}"
-    r = requests.get(url, headers=HEADERS)
-    r.raise_for_status()
-    soup = BeautifulSoup(r.text, "html.parser")
+    # await pour lire le HTML
+    async with session.get(url, headers=HEADERS) as r:
+        r.raise_for_status()
+        text = await r.text()
+    soup = BeautifulSoup(text, "html.parser")
 
 #Obtenir le TAG et l'ISIN
     badges = soup.find_all("h2", attrs={"class": "m-0 badge txt-b5 txt-s1"})
@@ -30,29 +39,34 @@ def fetch_meta(company_id: str) -> dict:
 #Obtenir le prix de l'action et la devise
     price_td = soup.find_all("td", attrs={"class": "txt-s7 txt-align-left is__realtime-last"})
     price_unit = price_td[0].text.strip()
-    price = price_unit.split()[0]
+    price = re.split(' \D',price_unit)[0]
+#Nom de l'entreprise
+    company_name = soup.find("span", attrs = {"class":"pl-5"}).text.strip()
 
     return {
+        "Entreprise": company_name,
         "TAG": tag,
         "ISIN": isin,
         "Prix_devise": price_unit,
-        "Prix": float(price.replace(",", "."))
+        "Prix": float(price.replace('\u202f','').replace(',','.'))
         }
 
-def fetch_ratios(company_id: str, section: str) -> pd.DataFrame:
+async def fetch_ratios(session: aiohttp.ClientSession,
+                       company_id: str, section: str) -> pd.DataFrame:
     """
     Scrape un tableau de ratios pour la section donnée (e.g. 'valorisation',
     'finances-ratios'). Retourne un DataFrame indexé par nom de ratio,
     colonnes = années.
     """
     url = f"{BASE_URL}{company_id}/{section}/"
-    r = requests.get(url, headers=HEADERS)
-    r.raise_for_status()
-    soup = BeautifulSoup(r.text, "html.parser")
+    async with session.get(url, headers=HEADERS) as r:
+        r.raise_for_status()
+        text = await r.text()
+    soup = BeautifulSoup(text, "html.parser")
 
     # Récupération des dates
     thead = soup.find("thead")
-    years = [int(span.text.strip()) for span in thead.find_all("span")]
+    #years = [int(span.text.strip()) for span in thead.find_all("span")]
     '''
     Equivalence:
     years=[]
@@ -64,7 +78,6 @@ def fetch_ratios(company_id: str, section: str) -> pd.DataFrame:
     '''
     #
     if section == "valorisation":
-
         # Récupération des lignes du tableau
         tbody = soup.find("tbody")
         rows = tbody.find_all("tr")
@@ -87,8 +100,10 @@ def fetch_ratios(company_id: str, section: str) -> pd.DataFrame:
                 except ValueError:
                     values.append(0.0)
             data[name] = values
+
+        years = [int(span.text.strip()) for span in thead.find_all("span")]
+
     elif section == "finances-ratios":
-        years = years[5:]
         # Récupération des lignes du tableau
         tbody = soup.find_all("tbody")
         rows = tbody[3].find_all("tr")
@@ -111,6 +126,11 @@ def fetch_ratios(company_id: str, section: str) -> pd.DataFrame:
                 except ValueError:
                     values.append(0.0)
             data[name] = values
+
+        years = [int(span.text.strip()) for span in thead.find_all("span")]
+        start = years[-1]-len(tds)+1
+        years = list(filter(lambda x : x >= start, years))
+        #years = years[5:]
     else:
         print(
             f"La section {section} comporte une erreur",
@@ -120,6 +140,6 @@ def fetch_ratios(company_id: str, section: str) -> pd.DataFrame:
         pass
 
     df = pd.DataFrame(data).T
-    #df.columns = years
+    df.columns = years
     #df_nonT = df.T
     return df,years
