@@ -5,22 +5,24 @@ from plotly.subplots import make_subplots
 class Plotter:
     def __init__(self, df, company_name):
         """
-        Initialise la figure avec 3 sous-graphiques pour visualiser :
+        Initialise la figure avec 4 sous-graphiques pour visualiser :
         - Valorisation (PER, PEG)
-        - Gestion des ressources (ROE, ROA, Marge nette)
-        - Maîtrise des coûts (Debt/Equity, Current ratio, EV/EBITDA)
+        - Création de valeur (ROE, ROA, ROTC)
+        - Solidité financière & cash réel (Rendement FCF, Dette/CP, (EBITDA-CAPEX)/Interêts)
+        - Croissance durable (CAGR 3-5 ans sur CA, Bénéfice net, FCF)
         """
         self.df = df #Stockage de la dataframe
         self.company = company_name.split('/')[0]
         #Crée la figure principale avec Plotly, pouvant contenir plusieurs sous-graphes.
         self.fig = make_subplots(
-            rows=3, cols=1,
+            rows=4, cols=1,
             subplot_titles=(
                 f"Valorisation - {self.company}",
-                f"Gestion des ressources - {self.company}",
-                f"Maîtrise des coûts - {self.company}"
+                f"Création de valeur - {self.company}",
+                f"Solidité financière et cash réel - {self.company}",
+                f"Croissance durable - {self.company}"
             ),
-            vertical_spacing=0.1
+            vertical_spacing=0.1,
         )
         #Applique la mise en page générale : taille, couleur de fond, polices, légende, marges, etc.
         self.fig.update_layout(
@@ -31,61 +33,36 @@ class Plotter:
             font=dict(family="Arial", size=14, color="black"),
             showlegend=True,
             plot_bgcolor="white",
-            legend=dict(x=0.85, y=1)
+            legend=dict(x=1, y=1)
         )
 
-    '''
-    def _plot_line(self, x, y, name, row, col):
-        self.fig.add_trace(
-            go.Scatter(x=x, y=y, mode="lines+markers", name=name),
-            row=row, col=col
-        )
-
-    def create_charts(self):
-        """
-        Ajoute les 3 graphiques fondamentaux à la figure :
-        - Valorisation : PER, PEG
-        - Ressources : ROE, ROA, Marge nette
-        - Coûts : Debt/Equity, Current ratio, EV/EBITDA
-        """
-        x = self.df["Année"] if "Année" in self.df.columns else self.df.index
-
-        # Graphique 1 : Valorisation
-        for metric in ["PER", "PEG"]:
-            if metric in self.df.columns:
-                self._plot_line(x, self.df[metric], metric, row=1, col=1)
-
-        # Graphique 2 : Gestion des ressources
-        for metric in ["Rentabilité des actifs (ROA)", "Rentabilité des capitaux propres (ROE)", "Marge nette %"]:
-            if metric in self.df.columns:
-                self._plot_line(x, self.df[metric], metric, row=2, col=1)
-
-        # Graphique 3 : Maîtrise des coûts
-        for metric in ["Total des dettes/capitaux propres", "Current Ratio", "Valeur Entreprise / EBITDA"]:
-            if metric in self.df.columns:
-                self._plot_line(x, self.df[metric], metric, row=3, col=1)
-
-        # Mise en forme des axes
-        for i in range(1, 4):
-            self.fig.update_xaxes(title_text="Année", row=i, col=1, showline=True, linewidth=2, linecolor='black')
-            self.fig.update_yaxes(showline=True, linewidth=2, linecolor='black', zeroline=True, zerolinewidth=1, zerolinecolor='gray', row=i, col=1)
-    '''
-    def _add_traces(self, metrics, row):
+    def _add_traces(self, metrics, row, col):
         x = self.df.columns  # années
         for m in metrics:
             if m in self.df.index:
                 y = self.df.loc[m]
                 self.fig.add_trace(go.Scatter(x=x, y=y, mode="lines+markers", name=m),
-                                   row=row, col=1)
+                                   row=row, col=col)
 
     def create_charts(self):
-        self._add_traces(["PER", "PEG"], row=1)
-        self._add_traces(["Rentabilité des actifs (ROA)", "Rentabilité des capitaux propres (ROE)", "Marge nette %"], row=2)
-        self._add_traces(["Total des dettes/capitaux propres", "Current Ratio", "Valeur Entreprise / EBITDA"], row=3)
-        for i in range(1, 4):
-            self.fig.update_xaxes(title_text="Année", row=i, col=1,
+        self._add_traces(["PER", "PEG"], row=1, col = 1)
+        self._add_traces(["Rentabilité des actifs (ROA)",
+                          "Rentabilité des capitaux propres (ROE)",
+                          "Rentabilité du capital total (ROTC)"], row=2, col=1)
+        self._add_traces(["FCF Yield %",
+                          "Total des dettes/capitaux propres",
+                          "(EBITDA - Capex) / Charges d'intérêt"], row=3, col= 1)
+        self._add_traces(["Chiffre d’affaires, CAGR sur 2 ans", 
+                          "Résultat net, CAGR sur 2 ans", 
+                          "Flux de trésorerie d’exploitation, CAGR sur 2 ans",
+                          "Chiffre d’affaires, CAGR sur 5 ans", 
+                          "Résultat net, CAGR sur 5 ans", 
+                          "Flux de trésorerie d’exploitation, CAGR sur 5 ans"], row=4, col=1)
+
+        for i in range(1, 5):
+                self.fig.update_xaxes(title_text="Année", row=i, col=1,
                                   showline=True, linewidth=2, linecolor="black")
-            self.fig.update_yaxes(showline=True, linewidth=2, linecolor="black",
+                self.fig.update_yaxes(showline=True, linewidth=2, linecolor="black",
                                   zeroline=True, zerolinecolor="gray", row=i, col=1)
         return self.fig
 
@@ -100,21 +77,3 @@ class Plotter:
     def show(self):
         """Affiche le graphique dans le notebook ou le navigateur"""
         self.fig.show()
-
-
-
-'''
-    def create_charts(self):
-        self._add_traces(["PER", "PEG"], row=1)
-        self._add_traces(["roe", "roa", "marge_nette_pct"], row=2)
-        self._add_traces(["debt_equity", "current_ratio", "ev_ebitda"], row=3)
-        for i in range(1, 4):
-            self.fig.update_xaxes(title_text="Année", row=i, col=1,
-                                  showline=True, linewidth=2, linecolor="black")
-            self.fig.update_yaxes(showline=True, linewidth=2, linecolor="black",
-                                  zeroline=True, zerolinecolor="gray", row=i, col=1)
-        return self.fig
-
-    def save_html(self, path):
-        self.fig.write_html(path)
-'''

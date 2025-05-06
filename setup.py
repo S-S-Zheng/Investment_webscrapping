@@ -16,6 +16,7 @@ setup(
         "pytest>=8.0",
         "pytest-asyncio>=0.20",
         "asyncio>=3.4"
+        "CurrencyConverter>=0.18"
     ],
     entry_points={
         "console_scripts": [

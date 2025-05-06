@@ -45,6 +45,7 @@ another one [²]
 ##### Final structure of the project:
 
 ![Project structure : Final structure of the project](pic1.png)
+
 <img alt="Project structure : Final structure of the project" src="img/pic1.png" />
 
 
@@ -75,35 +76,9 @@ Methods, options, I/O...
 
 ##### TODO - Add the files/folders to ignore in the .gitingore: DONE
 
-##### TODO - Modifier les valeurs de millier et les titres cf ci-suit:
+##### TODO - Correct values in millions and shares in thousand: DONE
 
-python
-    #Muliplication des lignes par 1000000
-    #Methode alternative:   map(lambda x: x * 1E6, data['Capitalisation'])
-    dico_valeurs['Capitalisation'] = [(1E6)*x for x in dico_valeurs['Capitalisation']]
-    dico_valeurs['Valeur Entreprise'] = [(1E6)*x for x in dico_valeurs['Valeur Entreprise']]
-    dico_valeurs["Chiffre d'affaires"] = [(1E6)*x for x in dico_valeurs["Chiffre d'affaires"]]
-    dico_valeurs['EBITDA'] = [(1E6)*x for x in dico_valeurs['EBITDA']]
-    dico_valeurs['Résultat net'] = [(1E6)*x for x in dico_valeurs['Résultat net']]
-    dico_valeurs["Endettement Net"] = [(1E6)*x for x in dico_valeurs['Endettement Net']]
-    dico_valeurs['Nbr de Titres (en Milliers)'] = [(1E6)*x for x in dico_valeurs['Nbr de Titres (en Milliers)']]
-    #Modifier la clef sur le nombre de titre
-    dico_valeurs['Nbr de Titres']=dico_valeurs.pop('Nbr de Titres (en Milliers)')
-    ################################################################
-    #Mise en df
-    #df=pd.DataFrame.from_dict(dico_valeurs,orient='index')
-    #Multiplication de 1000000 pour les lignes concernées
-    #df.loc['Capitalisation',:] *= 1E6
-    #df.loc['Valeur Entreprise',:] *= 1E6
-    #df.loc["Chiffre d'affaires",:] *= 1E6
-    #df.loc['EBITDA',:] *= 1E6
-    #df.loc['Résultat net',:] *= 1E6
-    #df.loc["Endettement Net",:] *= 1E6
-    #df.loc['Nbr de Titres (en Milliers)',:] *= 1E6
-    ###################################################################
-'''
-
-##### TODO - Retirer les lignes inutiles?
+##### TODO - Remove useless lines: Working progress
 
 ##### TODO - Ajouter des ratios?ROIC?
 

@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import aiohttp
 import re
+from currency_converter import CurrencyConverter
 
 
 HEADERS = {
@@ -39,16 +40,29 @@ async def fetch_meta(session: aiohttp.ClientSession, company_id: str) -> dict:
 #Obtenir le prix de l'action et la devise
     price_td = soup.find_all("td", attrs={"class": "txt-s7 txt-align-left is__realtime-last"})
     price_unit = price_td[0].text.strip()
-    price = re.split(' \D',price_unit)[0]
+    unitless = re.split(' \D',price_unit)[0]
+    price = float(unitless.replace('\u202f','').replace(',','.'))
+    try:
+        price_euro = CurrencyConverter().convert(price,price_unit.split()[-1],'EUR')
+    except ValueError:
+        price_euro = "N/A"
 #Nom de l'entreprise
-    company_name = soup.find("span", attrs = {"class":"pl-5"}).text.strip()
-
+    company_name = soup.find("span", attrs = {"class":"pl-5"}).text.strip().split('(')[0]
+#Variation du prix de l'action sur 5j et depuis le 1er janvier
+    var_week = soup.find_all("span",
+                            class_=["variation variation--pos","variation--no-bg","txt-bold"]
+                            )[2].text.strip().replace('\xa0', ' ')
+    var_jan = soup.find_all("span",
+                            class_=["variation variation--pos","variation--no-bg","txt-bold"]
+                            )[3].text.strip().replace('\xa0', ' ')
     return {
         "Entreprise": company_name,
         "TAG": tag,
         "ISIN": isin,
         "Prix_devise": price_unit,
-        "Prix": float(price.replace('\u202f','').replace(',','.'))
+        "Prix en euros": price_euro,
+        "Variation sur 5 jours": var_week,
+        "Variation depuis le 1er janvier": var_jan
         }
 
 async def fetch_ratios(session: aiohttp.ClientSession,
@@ -94,11 +108,14 @@ async def fetch_ratios(session: aiohttp.ClientSession,
             tds = tr.find_all("td")[1:]  # Exclut la 1re cellule titre
             values = []
             for td in tds:
-                txt = td.text.strip().replace("\u202f", "").replace("x", "").replace(",", ".")
-                try:
-                    values.append(float(txt))
-                except ValueError:
-                    values.append(0.0)
+                txt = td.text.strip().replace("\u202f", "").replace("x", "").replace(",", ".").replace("\xa0%",'')
+                if name == "Date de publication":
+                    values.append(txt)
+                else:
+                    try:
+                        values.append(float(txt))
+                    except ValueError:
+                        values.append('')
             data[name] = values
 
         years = [int(span.text.strip()) for span in thead.find_all("span")]
@@ -121,16 +138,19 @@ async def fetch_ratios(session: aiohttp.ClientSession,
             values = []
             for td in tds:
                 txt = td.text.strip().replace("\u202f", "").replace("x", "").replace(",", ".")
-                try:
-                    values.append(float(txt))
-                except ValueError:
-                    values.append(0.0)
+                if '\xa0k' in txt:
+                    txt = float(txt.replace(',','.').replace('\xa0k',''))*1E3
+                    values.append(txt)
+                else:
+                    try:
+                        values.append(float(txt))
+                    except ValueError:
+                        values.append('')
             data[name] = values
 
         years = [int(span.text.strip()) for span in thead.find_all("span")]
         start = years[-1]-len(tds)+1
         years = list(filter(lambda x : x >= start, years))
-        #years = years[5:]
     else:
         print(
             f"La section {section} comporte une erreur",

@@ -12,13 +12,15 @@ from transformer import merge_data, normalize_dataframe
 from exporter    import export_to_excel
 from Make_graphs import Plotter
 
+
 # Coroutine qui regroupe meta et ratios
 async def process_company(session, cid):
     meta = await fetch_meta(session, cid)
     df_val = await fetch_ratios(session, cid, "valorisation")
     df_fin = await fetch_ratios(session, cid, "finances-ratios")
-    df = merge_data(df_val[0], df_fin[0])
-    df= df.reindex(sorted(df.columns), axis=1)
+    df_merge = merge_data(df_val[0], df_fin[0])
+    df_normalize = normalize_dataframe(df_merge)
+    df = df_normalize.reindex(sorted(df_normalize.columns), axis=1)
 
     # Extrait le dividende de l'année courante ou 0
     current_year=int(dt.date.today().strftime('%Y'))
@@ -26,7 +28,8 @@ async def process_company(session, cid):
 
     sheet_name = meta["TAG"]
     company_name = meta["Entreprise"]
-    return sheet_name, meta, df, dividende, company_name
+    publication = df.loc["Date de publication", current_year]
+    return sheet_name, meta, df, dividende, company_name, publication
 
 async def main():
     company_identifiers = [
@@ -52,7 +55,8 @@ async def main():
         "ORACLE-CORPORATION-13620698/",
         "BAE-SYSTEMS-PLC-444896/",
         "TENCENT-HOLDINGS-LIMITED-16686492/",
-        "ALIBABA-GROUP-HOLDING-LIM-17916677/"
+        "ALIBABA-GROUP-HOLDING-LIM-17916677/",
+        "HIMS-HERS-HEALTH-INC-65220697/"
     ]
     summary_rows = []
     detail_dfs    = {}
@@ -60,10 +64,11 @@ async def main():
     async with aiohttp.ClientSession() as session:
         tasks = [process_company(session, cid) for cid in company_identifiers]
         # gather permet de lancer toutes les tâches de scrapping en coroutine
-        for sheet_name, meta, df, dividende, company_name in await asyncio.gather(*tasks):
+        for sheet_name, meta, df, dividende, company_name, publication in await asyncio.gather(*tasks):
             summary_rows.append({
                 **meta,
-                "Dividende par action": dividende
+                "Dividende par action": dividende,
+                "Date de publication": publication
             })
             detail_dfs[sheet_name] = df
 
