@@ -1,9 +1,7 @@
 # stock_screener/fetcher.py
 '''
-Responsabilité : isolation du scraping de ZoneBourse (URLs, parsing HTML,
-récupération de TAG/ISIN/prix, construction du DataFrame des ratios).
-On utilise une session partagée pour toutes les requêtes via aiohttp.ClientSession.
-Chaque fonction est une co-routine suivant async.
+Fetch the datas from Zone Bourse using the URLs and parsing into HTML (TAG, ISIN, prices...).
+The requests uses async methods through aiohttp.ClientSession
 '''
 
 import requests
@@ -12,6 +10,7 @@ import pandas as pd
 import aiohttp
 import re
 from currency_converter import CurrencyConverter
+
 
 
 HEADERS = {
@@ -23,21 +22,57 @@ HEADERS = {
 }
 BASE_URL = "https://www.zonebourse.com/cours/action/"
 
-async def fetch_meta(session: aiohttp.ClientSession, company_id: str) -> dict:
+async def fetch_calendar(session: aiohttp.ClientSession,
+                        company_id: str, section: str) -> dict:
     """
-    Récupère NOM, TAG, ISIN et prix via la page principale.
+    Fetch the coming events names and date
     """
-    url = f"{BASE_URL}{company_id}"
+    url = f"{BASE_URL}{company_id}{section}"
     # await pour lire le HTML
     async with session.get(url, headers=HEADERS) as r:
         r.raise_for_status()
         text = await r.text()
     soup = BeautifulSoup(text, "html.parser")
+    # Store the related table
+    table = soup.find_all('table', class_=["table","table--small","table--bordered"])[2]
+    rows = table.find_all('tr')
+    unsorted_events = {}
+    #Filtering by ignoring everything aside from Quarter and year in its name
+    for tr in rows:
+        if re.search(r'\bQ[1-4]\s\d{4}',tr.find_all('td')[1].text.strip()):
+            unsorted_events[tr.find_all('td')[1].text.strip()]=re.sub(
+                '\n\s{44}',' ',
+                tr.find_all('td')[0].text.strip()
+                )
+            '''
+            unsorted_events[tr.find_all('td')[1].text.strip()]=(
+                tr.find_all('td')[0].text.strip()
+                .replace('\n                                            ','-'))
+            '''
 
-#Obtenir le TAG et l'ISIN
+    return unsorted_events
+
+async def fetch_meta(session: aiohttp.ClientSession, company_id: str) -> dict:
+    """
+    Retrieve name, tag, isin and price
+    """
+    url = f"{BASE_URL}{company_id}"
+
+    async with session.get(url, headers=HEADERS) as r:
+        r.raise_for_status()
+        text = await r.text()
+    soup = BeautifulSoup(text, "html.parser")
+
+# TAG, ISIN, Country, Sector
+    '''
     badges = soup.find_all("h2", attrs={"class": "m-0 badge txt-b5 txt-s1"})
-    tag, isin = badges[0].text.strip(), badges[1].text.strip()
-#Obtenir le prix de l'action et la devise
+    '''
+    badges = soup.find_all("h2", class_=["m-0" ,"txt-b5", "txt-s1"])
+    country = badges[0].i.attrs['title']
+    tag = badges[1].text.strip()
+    isin =  badges[2].text.strip()
+    sector = badges[3].text.strip()
+# Price and Currency
     price_td = soup.find_all("td", attrs={"class": "txt-s7 txt-align-left is__realtime-last"})
     price_unit = price_td[0].text.strip()
     unitless = re.split(' \D',price_unit)[0]
@@ -46,9 +81,9 @@ async def fetch_meta(session: aiohttp.ClientSession, company_id: str) -> dict:
         price_euro = CurrencyConverter().convert(price,price_unit.split()[-1],'EUR')
     except ValueError:
         price_euro = "N/A"
-#Nom de l'entreprise
+# Name of the company
     company_name = soup.find("span", attrs = {"class":"pl-5"}).text.strip().split('(')[0]
-#Variation du prix de l'action sur 5j et depuis le 1er janvier
+# Fluctuation of the price for 5 days and since january the 1st
     var_week = soup.find_all("span",
                             class_=["variation variation--pos","variation--no-bg","txt-bold"]
                             )[2].text.strip().replace('\xa0', ' ')
@@ -57,8 +92,10 @@ async def fetch_meta(session: aiohttp.ClientSession, company_id: str) -> dict:
                             )[3].text.strip().replace('\xa0', ' ')
     return {
         "Entreprise": company_name,
+        "Pays": country,
         "TAG": tag,
         "ISIN": isin,
+        "Secteur": sector,
         "Prix_devise": price_unit,
         "Prix en euros": price_euro,
         "Variation sur 5 jours": var_week,
@@ -153,13 +190,12 @@ async def fetch_ratios(session: aiohttp.ClientSession,
         years = list(filter(lambda x : x >= start, years))
     else:
         print(
-            f"La section {section} comporte une erreur",
-            " ou n'a pas encore été validée, veuillez revérifier l'orthographe"
-            " ou modifier le fichier fetcher.py"
+            f"Section {section} has an issue or hasn't been validated yet",
+            " Please check again or modify fetcher.py file."
             )
         pass
 
     df = pd.DataFrame(data).T
     df.columns = years
-    #df_nonT = df.T
+
     return df,years

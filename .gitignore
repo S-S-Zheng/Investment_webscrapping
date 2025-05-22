@@ -131,3 +131,5 @@ graphs/
 html/
 old/
 tests/
+venv/
+dyna_fetch.py

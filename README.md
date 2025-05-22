@@ -78,6 +78,14 @@ Methods, options, I/O...
 
 ##### TODO - Correct values in millions and shares in thousand: DONE
 
+##### TODO - Correct subplots and sub legends : ALTERNATIVE Make_graphs_nosubplot.py
+
+##### TODO - Correct the Make_graphs_nosubplots.py : DONE but the sublegends positions aren't dynamics
+
+##### TODO - Add and correct the calendar of events: DONE
+
+##### TODO - Correct the summary before exporting due to hazardous calendar: DONE
+
 ##### TODO - Remove useless lines: Working progress
 
 ##### TODO - Ajouter des ratios?ROIC?
