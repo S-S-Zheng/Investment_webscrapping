@@ -16,14 +16,14 @@
 
 **This project has 2 goals:**
 
-[!CAUTION]
+<!--[!CAUTION]-->
     1) *Helping me in my investing strategies by gathering the financials datas of interesting companies*
 
-[!WARNING]
-    2) _Improving my programming knowledge using in this case, web scrapping through python_
+<!--[!IMPORTANT]-->
+    2) *Starting a data scientist portfolio*
 
-[!IMPORTANT]
-    3) **_BONUS: Starting a data scientist portfolio_**
+<!--[!WARNING]
+    3) _Improving my programming knowledge using in this case, web scrapping through python_
 
 [!TIP]
     4) ~~Earning money...~~
@@ -32,7 +32,6 @@
 [!NOTE]
 <ins>The first commit will show a usable code and the following commits will improve the coding structure.</ins> :+1:
 
-<!-- This content will not appear in the rendered Markdown -->
 
 simple footnote[¹]
 
@@ -42,6 +41,8 @@ another one [²]
 
 [²]:footnote2 [url2](https://www.youtube.com/)
 
+-->
+
 ##### Final structure of the project:
 
 ![Project structure : Final structure of the project](pic1.png)
@@ -49,22 +50,29 @@ another one [²]
 <img alt="Project structure : Final structure of the project" src="img/pic1.png" />
 
 
-README.md
-requirements.txt
-setup.py
-
-
 ## Pre-requisite:
 
-Versions, dependencies...
+- Python >= 3.9 (`python3 -V`)
+- Git >= 2.34 (`git --version`)
+- pip >= 24.0 (`pip --version`)
+The versions and dependencies required are showned in the setup.py and requirements.txt.
+[!NOTE]
+setup.py is used to define a reusable package and will likely contains the minimal functional dependencies (>=) capable to run the code (through pip install . or python setup.py install). The main point here is to create a reusable, documentated and sharable package whereas requirements.txt indicates the exactes dependencies required (pip install -r requirements.txt and can be froze with pip freeze > requirements.txt). You can't put metadatas (author, version, dependencies etc...) or on PyPI.
 
 ## Installation guide:
 
-Cmd to execute, potential issues...
+~~~
+mkdir project_name
+cd project_name
+git clone https://github.com/S-S-Zheng/Investment_webscrapping.git
+python3 venv path/to/venv
+source venv/bin/activate
+pip install .
+python3 main.py
+~~~
 
 ## User guide:
 
-Methods, options, I/O...
 
 ## Roadmap:
 
@@ -80,7 +88,7 @@ Methods, options, I/O...
 
 ##### TODO - Correct subplots and sub legends : ALTERNATIVE Make_graphs_nosubplot.py
 
-##### TODO - Correct the Make_graphs_nosubplots.py : DONE but the sublegends positions aren't dynamics
+##### TODO - Correct the Make_graphs_nosubplots.py : DONE but the sublegends positions aren't dynamics ==> Need improvements
 
 ##### TODO - Add and correct the calendar of events: DONE
 
@@ -88,24 +96,22 @@ Methods, options, I/O...
 
 ##### TODO - Remove useless lines: Working progress
 
-##### TODO - Ajouter des ratios?ROIC?
+##### TODO - Add ratios?ROIC?: DONE
+
+##### TODO - Re-work the modules to make them "base class": Working progress
+
+##### TODO - Build a dynamic scrapping through Selenium or playwrights: FAILED due to CRSF TOKEN issues though I've learned alot.
 
 ## LICENSE:
-
-???
 
 [MIT](https://choosealicense.com/licenses/mit/)
 
 ## Contributors:
 
-Thanks to Me, Myself, I, Chatgpt.
-
-Also pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
 
 ## FAQS:
 
+<!--
 ***
 A list of frequently asked questions
 1. **This is a question in bold**
@@ -122,8 +128,12 @@ Answer of the third question with *italic words*.
 |:--------------|:-------------:|--------------:|
 | text-align left | text-align center | text-align right |
 
+-->
+
 ## MISCELLANOUS:
 
+<!--
 Images : [Image text](/path/to/the/screenshot.png)
 links : [links](https://github.com/S-S-Zheng/Investment_webscrapping)
 feedbacks...
+-->

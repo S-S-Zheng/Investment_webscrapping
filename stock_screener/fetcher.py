@@ -73,7 +73,8 @@ async def fetch_meta(session: aiohttp.ClientSession, company_id: str) -> dict:
     isin =  badges[2].text.strip()
     sector = badges[3].text.strip()
 # Price and Currency
-    price_td = soup.find_all("td", attrs={"class": "txt-s7 txt-align-left is__realtime-last"})
+    price_td = soup.find_all("td",
+                            class_=["txt-s7","is__realtime-last","txt-align-left"])
     price_unit = price_td[0].text.strip()
     unitless = re.split(' \D',price_unit)[0]
     price = float(unitless.replace('\u202f','').replace(',','.'))

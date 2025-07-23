@@ -16,7 +16,7 @@ from exporter    import export_to_excel
 from Make_graphs_nosubplot import Plotter
 
 
-# Coroutine qui regroupe meta, calendrier et ratios
+# Async process that groups meta, calendar and ratios
 async def process_company(session: aiohttp.ClientSession, cid:str):
     meta = await fetch_meta(session, cid)
     df_val = await fetch_ratios(session, cid, "valorisation")
@@ -27,12 +27,11 @@ async def process_company(session: aiohttp.ClientSession, cid:str):
     df = df_add(df_reindex)
     calendar = await fetch_calendar(session, cid, "agenda")
 
-    # Extrait le dividende de l'année courante ou 0
     current_year=int(dt.date.today().strftime('%Y'))
     dividende = df.loc["Dividende / Action",current_year]
-
     sheet_name = meta["TAG"]
     company_name = meta["Entreprise"]
+
     return sheet_name, meta, df, dividende, company_name, calendar
 
 async def main():
@@ -83,7 +82,7 @@ async def main():
             })
             detail_dfs[sheet_name] = df
 
-            # Graphiques
+            # Charts
             #Une fois les df recupérées, on execute synchroniquement les I/O plot-Excel
             plotter = Plotter(df,company_name)
             fig = plotter.create_charts()
@@ -102,30 +101,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-"""
-        "SAFRAN-4696/",
-        "FERMENTALG-16118042/",
-        "MANITOU-GROUP-4773/",
-        "NVIDIA-CORPORATION-57355629/",
-        "TOTALENERGIES-SE-4717/",
-        "BYD-COMPANY-LIMITED-111963805/",
-        "ASML-HOLDING-N-V-12002973/",
-        "NOVO-NORDISK-A-S-1412980/",
-        "LVMH-4669/",
-        "OVH-GROUPE-127472031/",
-        "BNP-PARIBAS-4618/",
-        "AIR-LIQUIDE-4605/",
-        "SAINT-GOBAIN-4697/",
-        "TSMC-TAIWAN-SEMICONDUCTOR-6492349/",
-        "RHEINMETALL-AG-436527/",
-        "SANOFI-4698/",
-        "MEDPACE-HOLDINGS-INC-30506552/",
-        "REDDIT-INC-167442757/",
-        "AMAZON-COM-INC-12864605/",
-        "ORACLE-CORPORATION-13620698/",
-        "BAE-SYSTEMS-PLC-444896/",
-        "TENCENT-HOLDINGS-LIMITED-16686492/",
-        "ALIBABA-GROUP-HOLDING-LIM-17916677/",
-        "HIMS-HERS-HEALTH-INC-65220697/"
-"""
